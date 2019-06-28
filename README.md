@@ -10,10 +10,7 @@
 * Example board  
 * Example output  
 * Custom usage
-
-##### Pretrained word vectors
-
-* https://fasttext.cc/docs/en/english-vectors.html
+* Pre-trained word vectors - https://fasttext.cc/docs/en/english-vectors.html
 
 #### Current problems (and potential solutions)
 
