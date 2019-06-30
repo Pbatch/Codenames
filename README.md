@@ -44,7 +44,7 @@ The red team guesses are:
 ![RedGuesses](READMEimages/RedGuesses.PNG)  
 "Detonate" looks like a good clue for the red team.
 ## Advanced usage  
-Cricket looks like a good clue for the blue team for the above board.  
+"Cricket" looks like a good clue for the blue team for the above board.  
 Let's see what the model thinks:
 ```
 model = load_model("crawl.vec", binary_mode=False, limit=100000)
