@@ -1,6 +1,7 @@
 import gensim
 from board import Board
 from itertools import combinations
+import pronouncing
 import argparse
 
 
@@ -15,6 +16,7 @@ def load_model(in_file, limit, binary_mode):
 class Predictor:
     def __init__(self, board, model, vocabulary, blue, red, assassin, target):
         self.board = board
+        self.stemmed_board = set(map(gensim.parsing.preprocessing.stem, self.board))
         self.model = model
         self.vocabulary = vocabulary
         self.target = target
@@ -47,6 +49,28 @@ class Predictor:
             cluster_dict[blue_words] = sum([pairwise_scores[p] for p in combinations(blue_words, 2)])
         return cluster_dict
 
+    def legal(self, guess):
+        """
+        Determine if a guess is legal
+
+        The stemmed guess must not be any of the stemmed board words
+        The guess must not rhyme with any of the board words
+        The guess must not be contained in any of the board words and vice versa
+        """
+
+        stemmed_guess = gensim.parsing.preprocessing.stem(guess)
+        if stemmed_guess in self.stemmed_board:
+            return False
+
+        if guess in set(pronouncing.rhymes(guess)):
+            return False
+
+        for w in self.board:
+            if w in guess or guess in w:
+                return False
+
+        return True
+
     def guess_score(self, guess, mode):
         """
         Generate a score for a guess
@@ -65,9 +89,9 @@ class Predictor:
         2.) This score is the sum of pairwise connections in the cluster
         3.) For comparison sake divide by the cluster size
         """
-        for w in self.board:
-            if w in guess or guess in w:
-                return -float('inf')
+
+        if not self.legal(guess):
+            return -float('inf')
 
         if mode == "simple":
             blue_similarities = [self.similarity(w, guess) for w in self.blue]
@@ -131,16 +155,19 @@ def main():
     parser.add_argument('-mode',  type=str, default='cluster',
                         choices=['cluster', 'simple'],
                         help='The algorithm used to create the clues')
-    parser.add_argument('-print_board', type=bool,
-                        help='Set to False if you do not want to print the board.'
-                             'The colours might fail in a terminal', default=True)
+    parser.add_argument('-limit', type=int, default=10000,
+                        help='The number of pre-trained vectors to load')
+    parser.add_argument('-print_board', type=bool, default=True,
+                        help='Set to False if you do not want to print the board.')
+    parser.add_argument('-seed', type=int, default=None,
+                        help='Seed for the random board generation')
     args = parser.parse_args()
 
-    model = load_model(args.training_vectors, binary_mode=False, limit=10000)
+    model = load_model(args.training_vectors, binary_mode=False, limit=args.limit)
     common_words = [word.strip().lower() for word in open(args.common_words)]
     vocabulary = set(model.vocab).intersection(set(common_words))
 
-    board = Board(args.codenames_words, args.print_board)
+    board = Board(args.codenames_words, args.print_board, args.seed)
     board, blue, red, _, assassin = board.get_board_and_classes()
 
     blue_predictor = Predictor(board, model, vocabulary, blue, red, assassin, args.target)
