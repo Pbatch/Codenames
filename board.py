@@ -1,13 +1,15 @@
 import numpy as np
+import colorama
 from colorama import Fore
 from colorama import Style
 import argparse
 
 
 class Board:
-    def __init__(self, in_file, print_board=False):
+    def __init__(self, in_file, print_board, seed):
 
         self.in_file = in_file
+        np.random.seed(seed)
         self.board, self.blue, self.red, self.neutral, self.assassin \
             = self.generate_board()
         if print_board:
@@ -54,6 +56,8 @@ class Board:
         Print the game board
         """
 
+        colorama.init()
+
         # Set the formatting length to be: len("(ASSASSIN)") + longest_word_length
         longest_word_length = max(map(len, self.board))
         formatting_length = longest_word_length + 10
@@ -81,10 +85,11 @@ def main():
     parser.add_argument('codenames_words', type=str,
                         help='The file location of Codenames words')
     parser.add_argument('-print_board', type=bool,
-                        help='Set to False if you do not want to print the board.'
-                             'The colours might fail in a terminal', default=True)
+                        help='Set to False if you do not want to print the board', default=True)
+    parser.add_argument('-seed', type=int, default=None,
+                        help='Seed for the random board generation')
     args = parser.parse_args()
-    _ = Board(args.codenames_words, args.print_board)
+    _ = Board(args.codenames_words, args.print_board, args.seed)
 
 
 if __name__ == "__main__":
