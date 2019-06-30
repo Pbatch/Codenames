@@ -31,8 +31,8 @@ Create a Codenames board with:
 `python board.py "codenames_words"`  
 By setting the seed we get the same board each time:  
 `python board.py "codenames_words" -seed 0`  
-This gives the board:
-![SeedZeroBoard](READMEimages/SeedZeroBoard.PNG)
+This gives the board:  
+![SeedZeroBoard](READMEimages/SeedZeroBoard.PNG)  
 To generate guesses we need to supply a list of pre-trained word vectors to word2vec. For this example we download the vectors "crawl-300d-2M.vec.zip" from https://fasttext.cc/docs/en/english-vectors.html and extract them to "crawl.vec".
 This looks like a tough board so we will ask for three clues that try to link to two words.  
 Generate predictions on the board with:  
