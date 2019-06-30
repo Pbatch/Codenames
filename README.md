@@ -61,19 +61,11 @@ This gives the output:
 ![Cricket](READMEimages/Cricket.PNG)  
 Not a bad clue! The model manages to identify that we wanted to link 'duck' and 'game'.
 
+## TODO
+
+* Develop interactive web-version of the AI
 
 
-
-## Current problems (and potential solutions)
-
-Problem - Guesses too similar to board words  
-Solution - Use stemming on board words and guesses
-
-Problem - Guesses may rhyme with board words  
-Solution - Insert good library here?
-
-Problem - Not all Codenames words have word2vec representations  
-Solution - Use fastText representations instead
 
 
 
