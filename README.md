@@ -26,11 +26,43 @@ rather than just words that link to a guess.
 4) Set the enemy score to be the largest cosine similarity between the guess and all the enemy words
 5) Set guess score to the ally score minus the enemy score
 ## Usage
+<!-- -->
+Create a Codenames board with:  
+`python board.py "codenames_words"`  
+By setting the seed we get the same board each time:  
+`python board.py "codenames_words" -seed 0`  
+This gives the board:
+![SeedZeroBoard](READMEimages/SeedZeroBoard.PNG)
+To generate guesses we need to supply a list of pre-trained word vectors to word2vec. For this example we download the vectors "crawl-300d-2M.vec.zip" from https://fasttext.cc/docs/en/english-vectors.html and extract them to "crawl.vec".
+This looks like a tough board so we will ask for three clues that try to link to two words.  
+Generate predictions on the board with:  
+`python prediction.py "codenames_words" "crawl.vec" "common_words" -target 2 -guesses 2 -seed 0 -limit 100000`  
+This gives blue team guesses:  
+![BlueGuesses](READMEimages/BlueGuesses.PNG)  
+"Pork" looks like a good clue for the blue team.  
+The red team guesses are:   
+![RedGuesses](READMEimages/RedGuesses.PNG)  
+"Detonate" looks like a good clue for the red team.
+## Advanced usage  
+Cricket looks like a good clue for the blue team for the above board.  
+Let's see what the model thinks:
+```
+model = load_model("crawl.vec", binary_mode=False, limit=100000)
+common_words = [word.strip().lower() for word in open(args.common_words)]  
+vocabulary = set(model.vocab).intersection(set(common_words))
 
-* Example board  
-* Example output  
-* Custom usage
-* Pre-trained word vectors - https://fasttext.cc/docs/en/english-vectors.html
+board = Board("codenames_words", print_board="False", seed=0)
+board, blue, red, _, assassin = board.get_board_and_classes()
+
+blue_predictor = Predictor(board, model, vocabulary, blue, red, assassin, target=2)  
+blue_predictor.print_influence("cricket")
+```
+This gives the output:  
+![Cricket](READMEimages/Cricket.PNG)  
+Not a bad clue! The model manages to identify that we wanted to link 'duck' and 'game'.
+
+
+
 
 ## Current problems (and potential solutions)
 
