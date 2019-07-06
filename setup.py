@@ -1,5 +1,5 @@
 from setuptools import setup
 
 setup(
-   name='Codenames',
+   name='Codenames'
 )
