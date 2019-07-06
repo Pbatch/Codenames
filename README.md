@@ -41,6 +41,7 @@ Generate predictions on the board with:
 `python prediction.py "codenames_words" "crawl.vec" "common_words" -target 2 -guesses 3 -seed 0 -limit 100000`
   
 This gives blue team guesses:  
+
 ![BlueGuesses](READMEimages/BlueGuesses.PNG)  
 
 "Pork" looks like a good clue for the blue team.  
