@@ -1,0 +1,91 @@
+#status {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    font-size: 2em;
+}
+
+#footer {
+    padding-top: 0.5em;
+    font-size: 1.5em;
+}
+
+.symbol_button{
+    padding: 0 1.5em;
+}
+
+.symbol_button_text{
+    font-family: arial;
+    border-radius: 5px;
+    background-color: #F0F0F0;
+}
+
+.symbol_button_text:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  cursor: pointer;
+}
+
+body {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.remaining_text {
+    font-weight: bold;
+    font-family: Courier New;
+    color: var(--colour);
+}
+
+.card {
+  height: 80px;
+  font-weight: bold;
+  background-color: var(--colour);
+  color: var(--text_colour);
+  line-height: 80px;
+  font-size: 180%;
+  font-family: arial;
+  border-radius: 5px;
+  text-transform: uppercase;
+}
+
+.card:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  cursor: pointer;
+}
+
+.clue_button {
+  background-color: #F0F0F0;
+  font-family: arial;
+  border-radius: 5px;
+}
+
+.clue_button:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  cursor: pointer;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(var(--split), 1fr);
+  background-color: #fff;
+  color: #444;
+  text-align: center;
+  row-gap: 10px;
+  column-gap: 10px;
+}
+
+#clue_wrapper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background-color: #fff;
+  color: #444;
+  text-align: center;
+  row-gap: 5px;
+  column-gap: 5px;
+}
+
+#dialog {
+  display: none;
+}

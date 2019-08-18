@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+   <head>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+      <script>{% include 'js/main.js' %}</script>
+      <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+      <link rel='stylesheet' type='text/css' href='{{ url_for('static', filename='css/board.css') }}'>
+   </head>
+   <body>
+      <div id = "application">
+         <div class = "wrapper" style="--split: 5;" id = "status">
+            <div id="remaining">
+               <span class="remaining_text" style="--colour:blue">{{board[0]["blue_remaining"]}}</span>
+               &nbsp;–&nbsp;
+               <span class="remaining_text" style="--colour:red">{{board[0]["red_remaining"]}}</span>
+            </div>
+            <div></div>
+            <div id = "turn">
+               <div class="turn_text></div>
+                {% if board[0]["state"] == "choose_clue" %}
+                    <div class="turn_text">Choose a clue size</div>
+                {% elif board[0]["state"] == "computer_turn" %}
+                    <div class="turn_text">Opponent's turn</div>
+                {% elif board[0]["state"] == "make_guess" %}
+                    <div class="turn_text">Make your guesses</div>
+                {% elif board[0]["state"] == "win" %}
+                    <div class="turn_text">Congratulations! You win</div>
+                {% elif board[0]["state"] == "lose" %}
+                    <div class="turn_text">Unlucky... You lose</div>
+                {% endif %}
+            </div>
+            <div></div>
+            <div class="symbol_button" id="end_turn">
+               <div class="symbol_button_text">End Turn</div>
+            </div>
+         </div>
+         <div class="wrapper" style="--split: 5;" id="board">
+            {% for word in board[1:] %}
+               {% if word.active %}
+                  <!-- Assign the card a colour according to its type -->
+                  {% set colour = word.colour %}
+                  {% set text_colour = "#F5F5F5" %}
+               {% else %}
+                  <!-- Assign the default colour -->
+                  {% set colour = "#FFE0BD" %}
+                  {% set text_colour = "black" %}
+               {% endif %}
+               <div class="card" style="--colour:{{colour}};--text_colour:{{text_colour}}" data-id="{{loop.index}}">{{word.name}}</div>
+            {% endfor %}
+         </div>
+      </div>
+      <div class="wrapper" style="--split: 5;" id = "footer">
+         <div id="radio">
+            <input type="radio" name="difficulty" value="easy" id="easy">easy
+            <input type="radio" name="difficulty" value="medium" id="medium">medium
+            <input type="radio" name="difficulty" value="hard" id="hard">hard
+         </div>
+         {% if board[0]["target"] >= 1 %}
+            <div id="clue_text">Clue: {{board[0]["clue"]}} ({{board[0]["target"]}})</div>
+         {% else %}
+            <div id="clue_text">Clue: {{board[0]["clue"]}}</div>
+         {% endif %}
+         <div id="clue_wrapper">
+            {% for i in range(1, 4, 1) %}
+            <div class="clue_button" id = "clue_button{{i}}" data-target="{{i}}">{{i}}</div>
+            {% endfor %}
+         </div>
+         <div class="symbol_button" id="reset">
+            <div class="symbol_button_text">Reset &#8634;</div>
+         </div>
+         <div class="symbol_button" id="instructions">
+            <div class="symbol_button_text">Instructions &#128712;</div>
+            <div id="dialog"></div>
+         </div>
+      </div>
+   </body>
+</html>
