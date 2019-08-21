@@ -1,6 +1,6 @@
 # Codenames
 
-Website - https://github.com/Pbatch/Codenames
+Website - https://pbatchtest.appspot.com/
 
 ## Description
 
