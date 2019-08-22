@@ -52,9 +52,12 @@
       </div>
       <div class="wrapper" style="--split: 5;" id = "footer">
          <div id="radio">
-            <input type="radio" name="difficulty" value="easy" id="easy">easy
-            <input type="radio" name="difficulty" value="medium" id="medium">medium
-            <input type="radio" name="difficulty" value="hard" id="hard">hard
+            <input type="radio" name="difficulty" value="easy" id="easy">
+            <label for="easy">easy</label>
+            <input type="radio" name="difficulty" value="medium" id="medium">
+            <label for="medium">medium</label>
+            <input type="radio" name="difficulty" value="hard" id="hard">
+            <label for="hard">hard</label>
          </div>
          {% if board[0]["target"] >= 1 %}
             <div id="clue_text">Clue: {{board[0]["clue"]}} ({{board[0]["target"]}})</div>

@@ -89,3 +89,7 @@ body {
 #dialog {
   display: none;
 }
+
+#radio {
+  font-size: 0.4em;
+}
