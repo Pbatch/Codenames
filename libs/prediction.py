@@ -13,7 +13,24 @@ def load_model(in_file):
 
 
 class Predictor:
+    """
+    Generate clues for the blue team
+    """
     def __init__(self, board, models, vocab_path, target, invalid_guesses):
+        """
+        Parameters
+        ----------
+        board: json
+            The current board state
+        models: list
+            The word2vec models used to compute word distances
+        vocab_path: str
+            The path to the vocabulary
+        target: int
+            The number of words to try and link
+        invalid_guesses: set
+            Clues which have already been given
+        """
         self.models = models
         self.target = target
         self.vocab_path = vocab_path
@@ -93,6 +110,10 @@ class Predictor:
     def guess_score(self, guess):
         """
         Generate a score for a guess
+
+        The first component is the number of relevant red + neutral + assassin words
+        The second component is the number of relevant blue words
+        The final component is a measure of how well the clue and the relevant blue words link
         """
 
         if guess in self.words:

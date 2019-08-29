@@ -228,16 +228,15 @@ def pipeline(name, limit=250000):
     w2v_path = "prediction/{}.vec".format(name)
     filtered_vec_path = "prediction/{}_filtered.vec".format(name)
     filtered_path = "prediction/{}_filtered".format(name)
-    # vocab_path = "prediction/{}_vocab".format(name)
-    vocab_path = "prediction/joint_vocab"
+    vocab_path = "prediction/{}_vocab".format(name)
+    # vocab_path = "prediction/joint_vocab"
     top_words_path = "prediction/{}_top_words".format(name)
     final_vec_path = "prediction/{}_final.vec".format(name)
     final_path = "prediction/{}_final".format(name)
 
-
-    # pre_clean(w2v_path, "tmp", filtered_vec_path)
-    # save_model(filtered_vec_path, filtered_path, limit)
-    # post_clean(filtered_path, vocab_path, top_words_path)
+    pre_clean(w2v_path, "tmp", filtered_vec_path)
+    save_model(filtered_vec_path, filtered_path, limit)
+    post_clean(filtered_path, vocab_path, top_words_path)
     final_model(filtered_vec_path, "tmp", final_vec_path, vocab_path)
     save_model(final_vec_path, final_path, limit)
 

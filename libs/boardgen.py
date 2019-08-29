@@ -3,8 +3,16 @@ import argparse
 
 
 class Boardgen:
+    """
+    Generate a random board
+    """
     def __init__(self, in_file):
-
+        """
+        Parameters
+        ----------
+        in_file: str
+            The path to the possible board words
+        """
         self.in_file = in_file
         self.board = self.generate_board()
 
@@ -48,10 +56,8 @@ def main():
     parser = argparse.ArgumentParser(description='Create a Codenames board from a set of words')
     parser.add_argument('codenames_words', type=str,
                         help='The file location of Codenames words')
-    parser.add_argument('-seed', type=int, default=None,
-                        help='Seed for the random board generation')
     args = parser.parse_args()
-    _ = Boardgen(args.codenames_words, args.seed)
+    _ = Boardgen(args.codenames_words)
 
 
 if __name__ == "__main__":

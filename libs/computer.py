@@ -3,7 +3,16 @@ from copy import deepcopy
 
 
 class Computer:
+    """
+    Generate a random sequence of computer moves
+    """
     def __init__(self, board):
+        """
+        Parameters
+        ----------
+        board: json
+            The current board state
+        """
         self.board = board
         self.distribution = self.get_distribution()
         self.blue, self.red, self.neutral = self.get_types()
@@ -54,7 +63,7 @@ class Computer:
                        self.distribution["neutral"] if len(self.neutral) > 0 else 0,
                        self.distribution["none"] if len(sequence) != 0 else 0]
             weights = np.array(weights) / sum(weights)
-            print(weights)
+            # print(weights)
 
             card_type = np.random.choice(["red", "blue", "neutral", "none"], p=weights)
 
@@ -97,9 +106,9 @@ def main():
                      "difficulty": "hard",
                      "computer_turn": True
                      })
-    print(board)
+    print(board[0])
     new_board = Computer(board).make_computer_choices()
-    print(new_board)
+    print(new_board[0])
 
 
 if __name__ == "__main__":
