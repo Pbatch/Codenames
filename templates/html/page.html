@@ -11,25 +11,12 @@
       <div id = "application">
          <div class = "wrapper" style="--split: 5;" id = "status">
             <div id="remaining">
-               <span class="remaining_text" style="--colour:blue">{{board[0]["blue_remaining"]}}</span>
+               <span class="remaining_text" id="blue" style="--colour:blue">9</span>
                &nbsp;–&nbsp;
-               <span class="remaining_text" style="--colour:red">{{board[0]["red_remaining"]}}</span>
+               <span class="remaining_text" id="red" style="--colour:red">8</span>
             </div>
             <div></div>
-            <div id = "turn">
-               <div class="turn_text></div>
-                {% if board[0]["state"] == "choose_clue" %}
-                    <div class="turn_text">Choose a clue size</div>
-                {% elif board[0]["state"] == "computer_turn" %}
-                    <div class="turn_text">Opponent's turn</div>
-                {% elif board[0]["state"] == "make_guess" %}
-                    <div class="turn_text">Make your guesses</div>
-                {% elif board[0]["state"] == "win" %}
-                    <div class="turn_text">Congratulations! You win</div>
-                {% elif board[0]["state"] == "lose" %}
-                    <div class="turn_text">Unlucky... You lose</div>
-                {% endif %}
-            </div>
+            <div id="turn_text"></div>
             <div></div>
             <div class="symbol_button" id="end_turn">
                <div class="symbol_button_text">End Turn</div>
@@ -37,22 +24,13 @@
          </div>
          <div class="wrapper" style="--split: 5;" id="board">
             {% for word in board[1:] %}
-               {% if word.active %}
-                  <!-- Assign the card a colour according to its type -->
-                  {% set colour = word.colour %}
-                  {% set text_colour = "#F5F5F5" %}
-               {% else %}
-                  <!-- Assign the default colour -->
-                  {% set colour = "#FFE0BD" %}
-                  {% set text_colour = "black" %}
-               {% endif %}
-               <div class="card" style="--colour:{{colour}};--text_colour:{{text_colour}}" data-id="{{loop.index}}">{{word.name}}</div>
+               <div class="card" id="{{word.id}}">{{word.name}}</div>
             {% endfor %}
          </div>
       </div>
       <div class="wrapper" style="--split: 5;" id = "footer">
          <div id="radio">
-            <input type="radio" name="difficulty" value="easy" id="easy">
+            <input type="radio" name="difficulty" value="easy" id="easy" checked="checked">
             <label for="easy">easy</label>
             <input type="radio" name="difficulty" value="medium" id="medium">
             <label for="medium">medium</label>
@@ -73,7 +51,7 @@
             <div class="symbol_button_text">Reset &#8634;</div>
          </div>
          <div class="symbol_button" id="instructions">
-            <div class="symbol_button_text">Instructions &#128712;</div>
+            <div class="symbol_button_text">Instructions &#10068;</div>
             <div id="dialog"></div>
          </div>
       </div>

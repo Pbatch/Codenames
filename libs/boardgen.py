@@ -49,6 +49,11 @@ class Boardgen:
             board.append(word_details)
 
         np.random.shuffle(board)
+
+        # Assign ids (+1 because of the header)
+        for i in range(25):
+            board[i]["id"] = i+1
+
         return board
 
 

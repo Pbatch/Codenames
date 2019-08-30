@@ -41,8 +41,8 @@ body {
 .card {
   height: 80px;
   font-weight: bold;
-  background-color: var(--colour);
-  color: var(--text_colour);
+  background-color: #FFE0BD;
+  color: black;
   line-height: 80px;
   font-size: 180%;
   font-family: arial;

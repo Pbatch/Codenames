@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import sys
 import json
 sys.path.insert(0, 'libs')
@@ -15,16 +15,8 @@ def index():
     Create a random board.
     """
     board = boardgen.Boardgen("static/data/codenames_words").board
-    board.insert(0, {"clue": "",
-                     "target": -1,
-                     "red_remaining": 8,
-                     "blue_remaining": 9,
-                     "neutral_remaining": 7,
-                     "assassin_remaining": 1,
+    board.insert(0, {"target": -1,
                      "difficulty": "easy",
-                     "state": "choose_clue",
-                     "remaining_guesses": -1,
-                     "sequence": [],
                      "invalid_guesses": []
                      })
     return render_template('html/page.html', board=board)
@@ -45,8 +37,10 @@ def computer_turn():
     Get a series of computer moves
     """
     board = json.loads(request.data)
-    new_board = computer.Computer(board).make_computer_choices()
-    return render_template('html/page.html', board=new_board)
+    sequence = computer.Computer(board).generate_computer_sequence()
+
+    json_sequence = jsonify(sequence=sequence)
+    return json_sequence
 
 
 @app.route("/clue", methods=["POST"])
@@ -64,14 +58,9 @@ def clue():
                                      invalid_guesses=set(board[0]["invalid_guesses"]))
 
     score, clue = predictor.get_best_guess_and_score()
-
-    board[0]["clue"] = clue
-    board[0]["state"] = "make_guess"
-    board[0]["invalid_guesses"].append(clue)
-
     # print(clue, score)
 
-    return render_template('html/page.html', board=board)
+    return clue
 
 
 @app.route("/instructions", methods=["GET"])

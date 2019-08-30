@@ -25,13 +25,13 @@ class Computer:
         red = []
         neutral = []
         for card in self.board[1:]:
-            name = card["name"].replace(" ", "")
+            card_id = card["id"]
             if card["type"] == "blue" and not card["active"]:
-                blue.append(name)
+                blue.append(card_id)
             if card["type"] == "red" and not card["active"]:
-                red.append(name)
+                red.append(card_id)
             if card["type"] == "neutral" and not card["active"]:
-                neutral.append(name)
+                neutral.append(card_id)
         return blue, red, neutral
 
     def get_distribution(self):
@@ -46,16 +46,15 @@ class Computer:
             distribution = {"blue": 0, "red": 3, "neutral": 1, "none": 2}
         return distribution
 
-    def make_computer_choices(self):
+    def generate_computer_sequence(self):
         """
-        Perform a sequence of computer choices
+        Generate a sequence for the computer
         """
-        board = deepcopy(self.board)
 
         sequence = []
         card_type = None
         decay = 1
-        while card_type not in {"blue", "neutral"} and board[0]["red_remaining"] > 0:
+        while card_type not in {"blue", "neutral"}:
             if len(self.blue) + len(self.red) + len(self.neutral) == 0:
                 break
             weights = [self.distribution["red"]*decay if len(self.red) > 0 else 0,
@@ -63,36 +62,28 @@ class Computer:
                        self.distribution["neutral"] if len(self.neutral) > 0 else 0,
                        self.distribution["none"] if len(sequence) != 0 else 0]
             weights = np.array(weights) / sum(weights)
-            # print(weights)
 
             card_type = np.random.choice(["red", "blue", "neutral", "none"], p=weights)
 
             if card_type == "red":
-                name = np.random.choice(self.red)
-                self.red.remove(name)
+                card_id = np.random.choice(self.red)
+                self.red.remove(card_id)
 
             elif card_type == "blue":
-                name = np.random.choice(self.blue)
-                self.blue.remove(name)
+                card_id = np.random.choice(self.blue)
+                self.blue.remove(card_id)
 
             elif card_type == "neutral":
-                name = np.random.choice(self.neutral)
-                self.neutral.remove(name)
+                card_id = np.random.choice(self.neutral)
+                self.neutral.remove(card_id)
 
             else:
                 break
 
-            sequence.append(name)
+            sequence.append(int(card_id))
             decay *= 0.35
 
-        board[0]["sequence"] = sequence
-
-        if len(sequence) != 0:
-            board[0]["state"] = "computer_turn"
-        else:
-            board[0]["state"] = "choose_clue"
-
-        return board
+        return sequence
 
 
 def main():
