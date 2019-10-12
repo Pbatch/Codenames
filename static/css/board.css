@@ -48,6 +48,7 @@ body {
   font-family: arial;
   border-radius: 5px;
   text-transform: uppercase;
+  outline-style: none;
 }
 
 .card:hover {
@@ -92,4 +93,15 @@ body {
 
 #radio {
   font-size: 0.4em;
+}
+
+#cheat {
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+}
+
+#cheat:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  cursor: pointer;
 }

@@ -57,10 +57,10 @@ def clue():
                                      target=board[0]["target"],
                                      invalid_guesses=set(board[0]["invalid_guesses"]))
 
-    score, clue = predictor.get_best_guess_and_score()
-    # print(clue, score)
+    score, clue, target_blue = predictor.get_best_guess_and_score()
+    clue_details = jsonify(clue=clue, target_blue=target_blue)
 
-    return clue
+    return clue_details
 
 
 @app.route("/instructions", methods=["GET"])

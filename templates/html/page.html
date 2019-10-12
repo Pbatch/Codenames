@@ -10,12 +10,14 @@
    <body>
       <div id = "application">
          <div class = "wrapper" style="--split: 5;" id = "status">
+            <div class="symbol_button" id="reset">
+               <div class="symbol_button_text">Reset &#8634;</div>
+            </div>
             <div id="remaining">
                <span class="remaining_text" id="blue" style="--colour:blue">9</span>
                &nbsp;–&nbsp;
                <span class="remaining_text" id="red" style="--colour:red">8</span>
             </div>
-            <div></div>
             <div id="turn_text"></div>
             <div></div>
             <div class="symbol_button" id="end_turn">
@@ -47,8 +49,11 @@
             <div class="clue_button" id = "clue_button{{i}}" data-target="{{i}}">{{i}}</div>
             {% endfor %}
          </div>
-         <div class="symbol_button" id="reset">
-            <div class="symbol_button_text">Reset &#8634;</div>
+         <div>
+            <label class="switch">
+               Cheat
+              <input type="checkbox" id="cheat">
+            </label>
          </div>
          <div class="symbol_button" id="instructions">
             <div class="symbol_button_text">Instructions &#10068;</div>

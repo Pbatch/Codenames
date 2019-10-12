@@ -10,6 +10,7 @@ $(document).ready(function(){
     $('.card').css('pointer-events', 'none');
     $('#end_turn').css('pointer-events', 'none');
     $('.clue_button').css('pointer-events', 'none');
+    $('.switch').css('pointer-events', 'none');
   }
 
   //Make guesses
@@ -21,6 +22,7 @@ $(document).ready(function(){
     disable_buttons();
     $('.card').css('pointer-events', 'auto');
     $('#end_turn').css('pointer-events', 'auto');
+    $('.switch').css('pointer-events', 'auto');
   }
 
   //Choose clue
@@ -31,6 +33,21 @@ $(document).ready(function(){
     //Activate relevant buttons
     disable_buttons();
     $('.clue_button').css('pointer-events', 'auto');
+  }
+
+  //Update card borders
+  function update_card_borders(check) {
+    if (check == true) {
+      var outline_style = "dashed";
+    }
+    else {
+      var outline_style = "none";
+    }
+    for (i = 0; i < target_blue.length; i++) {
+      var id = target_blue[i];
+      $("#"+id).css({
+      "outline-style": outline_style});
+    }
   }
 
   //Update card
@@ -88,13 +105,17 @@ $(document).ready(function(){
 
   //Computer turn
   function computer_turn() {
+    //Remove old cheat borders
+    update_card_borders(false);
+
     //Update title
     $('#turn_text').html("Opponent's turn");
 
+    //Update clue text
+    $("#clue_text").html(`Clue: `)
+
     //Disable buttons
-    $('.card').css('pointer-events', 'none');
-    $('#end_turn').css('pointer-events', 'none');
-    $('.clue_button').css('pointer-events', 'none');
+    disable_buttons();
 
     //Get a computer sequence
     $.ajax({
@@ -108,7 +129,7 @@ $(document).ready(function(){
 
          //Apply the sequence
          var sequence_length = sequence.length;
-         for (var i = 0; i < sequence_length; i++) {
+         for (i = 0; i < sequence_length; i++) {
             await sleep(1000);
             update_card(sequence[i]);
             if (check_end() == true) {
@@ -133,6 +154,8 @@ $(document).ready(function(){
   var red_remaining = 8;
   var neutral_remaining = 7;
   var assassin_remaining = 1;
+  var cheat = false;
+  window.target_blue = [];
 
   //Load instructions
   var opt = {
@@ -190,11 +213,12 @@ $(document).ready(function(){
 
   //Clue button behaviour
   $('.clue_button').click(function() {
+
      //Stop other requests
      $('.clue_button').css('pointer-events', 'none');
 
      //Loading placeholder
-     $('div[id=clue]').html("thinking...");
+     $('div[id=clue_text]').html("Thinking...");
 
      //Update the board
      board[0].target = $(this).data('target');
@@ -206,12 +230,19 @@ $(document).ready(function(){
         contentType: "application/json; charset=utf-8",
         dataType: "html",
         data: JSON.stringify(board),
-        success: function(clue){
+        success: function(clue_details){
+            var clue_details = JSON.parse(clue_details);
+            var clue = clue_details.clue;
+            window.target_blue = clue_details.target_blue;
+
             //Add the clue to the list of invalid guesses
             board[0]["invalid_guesses"].push(clue);
 
             //Update clue and target
             $("#clue_text").html(`Clue: ${clue} (${board[0].target})`)
+
+            //Update borders of relevant cards
+            update_card_borders(cheat);
 
             //Go to make_guess function
             make_guess();
@@ -232,5 +263,11 @@ $(document).ready(function(){
   //Radio button behaviour
   $("input[name='difficulty']").click(function(){
     board[0].difficulty = $("input[name='difficulty']:checked").val();
+  });
+
+  //Cheat button behaviour
+  $("#cheat").click(function(){
+    cheat = this.checked;
+    update_card_borders(cheat);
   });
 });

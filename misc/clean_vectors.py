@@ -75,14 +75,6 @@ def pre_clean(in_file, tmp_file, out_file):
             for line in tqdm(input):
                 word = line.split()[0]
 
-                # Special cases
-                if word == "scuba-diving":
-                    special_lines.append(line.replace("scuba-diving", "scubadiver"))
-                elif word == "ice-cream":
-                    special_lines.append(line.replace("ice-cream", "icecream"))
-                elif word == "Lochness":
-                    special_lines.append(line.replace("Lochness", "lochness"))
-
                 # If a word is deemed suitable, write its line to file
                 new_word = word.lower()
                 if suitable(new_word, line, codenames_words, stemmed_codenames_words):
@@ -224,6 +216,7 @@ def quality_check(model_paths):
         top_words = [list(map(lambda x: x[0], m.similar_by_word(w, 5))) for m in models]
         print(w, top_words)
 
+
 def pipeline(name, limit=250000):
     w2v_path = "prediction/{}.vec".format(name)
     filtered_vec_path = "prediction/{}_filtered.vec".format(name)
@@ -241,9 +234,8 @@ def pipeline(name, limit=250000):
     save_model(final_vec_path, final_path, limit)
 
 def main():
-    # pipeline("crawl")
-    # pipeline("wiki")
-    quality_check(["prediction/crawl_final", "prediction/wiki_final"])
+    # pipeline("wiki", limit=None)
+    quality_check(["../static/data/wiki_final"])
 
 
 if __name__ == "__main__":

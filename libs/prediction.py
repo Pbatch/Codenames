@@ -38,6 +38,7 @@ class Predictor:
         self.invalid_guesses = invalid_guesses
 
         self.words = self.get_words()
+        self.all_words = self.get_all_words()
         self.blue, self.red, self.neutral, self.assassin = self.get_types()
 
         self.pairwise_scores = self.calculate_pairwise_scores()
@@ -45,10 +46,17 @@ class Predictor:
 
     def get_words(self):
         """
-        Extract the words from the cards
+        Extract the words from the inactive cards
         """
         words = [card["name"].replace(" ", "") for card in self.board if not card["active"]]
         return words
+
+    def get_all_words(self):
+        """
+        Extract the words from every card
+        """
+        all_words = [card["name"].replace(" ", "") for card in self.board]
+        return all_words
 
     def get_types(self):
         """
@@ -117,7 +125,7 @@ class Predictor:
         """
 
         if guess in self.words:
-            return [float('-inf'), float('-inf')]
+            return [[float('-inf'), float('-inf'), float('-inf')], guess, []]
 
         score = [0, 0, 0]
 
@@ -131,24 +139,28 @@ class Predictor:
 
         score[1] = min(self.target, len(relevant_blue_words))
 
+        target_blue = []
         for blue_words in combinations(relevant_blue_words.keys(), score[1]):
             pairs = combinations(blue_words, 2)
             cluster_score = sum(self.pairwise_scores[(a, b)] for a, b in pairs)
             guess_score = sum(relevant_blue_words[w] for w in blue_words)
             total_score = cluster_score + guess_score
             if total_score >= score[2]:
+                target_blue = blue_words
                 score[2] = total_score
 
-        return score
+        target_blue = [self.all_words.index(w)+1 for w in target_blue]
+
+        return score, guess, target_blue
 
     def get_best_guess_and_score(self):
         """
         Get the best guess and its score
         """
-        guess_scores = ((self.guess_score(g), g) for g in self.valid_guesses)
-        best_score, best_guess = max(guess_scores)
+        guess_scores = (self.guess_score(g) for g in self.valid_guesses)
+        best_score, best_guess, target_blue = max(guess_scores, key=lambda x: x[0])
 
-        return best_score, best_guess
+        return best_score, best_guess, target_blue
 
 
 def main():

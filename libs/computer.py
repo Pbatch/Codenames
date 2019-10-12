@@ -88,18 +88,33 @@ class Computer:
 
 def main():
     import boardgen
-    board = boardgen.Boardgen("../static/data/codenames_words").board
-    board.insert(0, {"clue": "",
-                     "target": 0,
-                     "red_remaining": 8,
-                     "blue_remaining": 9,
-                     "neutral_remaining": 7,
-                     "difficulty": "hard",
-                     "computer_turn": True
-                     })
-    print(board[0])
-    new_board = Computer(board).make_computer_choices()
-    print(new_board[0])
+    while True:
+        board = boardgen.Boardgen("../static/data/codenames_words").board
+        red = 8
+        blue = 9
+        neutral = 7
+        for i in range(20):
+            if board[i]["type"] not in {"assassin", "red"}:
+                board[i]["active"] = True
+            if board[i]["type"] == blue:
+                blue -= 1
+            elif board[i]["type"] == red:
+                red -= 1
+            elif board[i]["type"] == neutral:
+                neutral -= 1
+        board.insert(0, {"clue": "",
+                         "target": 0,
+                         "red_remaining": red,
+                         "blue_remaining": blue,
+                         "neutral_remaining": neutral,
+                         "difficulty": "easy",
+                         "computer_turn": True
+                         })
+        sequence = Computer(board).generate_computer_sequence()
+        if "assassin" in sequence:
+            print(sequence)
+            break
+        print(", ".join([board[i]["type"] for i in sequence]))
 
 
 if __name__ == "__main__":
