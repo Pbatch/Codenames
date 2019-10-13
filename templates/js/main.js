@@ -78,15 +78,15 @@ $(document).ready(function(){
   //Check if the game has ended
   function check_end() {
     var end = false;
-    //The computer never chooses the assassin so no assassin guarantees a loss
-    if (red_remaining == 0 || assassin_remaining == 0) {
-      //Update title
-      $('#turn_text').html("Unlucky... You lose");
-      var end = true;
-    }
-    else if (blue_remaining == 0) {
+    if (blue_remaining == 0) {
       //Update title
       $('#turn_text').html("Congratulations! You win");
+      var end = true;
+    }
+    //The computer never chooses the assassin so no assassin guarantees a loss
+    else if (red_remaining == 0 || assassin_remaining == 0) {
+      //Update title
+      $('#turn_text').html("Unlucky... You lose");
       var end = true;
     }
     if (end == true) {
@@ -108,8 +108,9 @@ $(document).ready(function(){
     //Remove old cheat borders
     update_card_borders(false);
 
+    //Removed sleep functionality
     //Update title
-    $('#turn_text').html("Opponent's turn");
+    //$('#turn_text').html("Opponent's turn");
 
     //Update clue text
     $("#clue_text").html(`Clue: `)
@@ -130,14 +131,16 @@ $(document).ready(function(){
          //Apply the sequence
          var sequence_length = sequence.length;
          for (i = 0; i < sequence_length; i++) {
-            await sleep(1000);
+            //Removed sleep functionality
+            //await sleep(250);
             update_card(sequence[i]);
-            if (check_end() == true) {
+            var check = check_end();
+            if (check == true) {
                 break;
             }
          }
          //If the game hasn't ended, go back to offering clues
-         if (check_end() == false) {
+         if (check == false) {
             choose_clue();
          }
        }
