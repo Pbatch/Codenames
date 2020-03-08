@@ -1,6 +1,6 @@
 # Codenames
 
-Website - https://pbatchtest.appspot.com/
+Website - http://35.177.49.164/
 
 ## Description
 
