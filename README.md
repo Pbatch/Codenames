@@ -1,6 +1,7 @@
 # Codenames
 
-Website - http://35.177.49.164/
+Website - http://35.177.49.164/  
+Update: The website has been shutdown due to hosting costs
 
 ## Description
 
