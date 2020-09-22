@@ -1,10 +1,8 @@
 from flask import Flask, render_template, request, jsonify
-import sys
 import json
-sys.path.insert(0, 'libs')
-import boardgen
-import prediction
-import computer
+from libs.boardgen import Boardgen
+from libs.prediction import Predictor
+from libs.computer import Computer
 app = Flask(__name__)
 
 
@@ -14,9 +12,8 @@ def index():
     Homepage for the website.
     Create a random board.
     """
-    board = boardgen.Boardgen("static/data/codenames_words").board
-    board.insert(0, {"target": -1,
-                     "difficulty": "easy",
+    board = Boardgen("static/data/codenames_words").board
+    board.insert(0, {"difficulty": "easy",
                      "invalid_guesses": []
                      })
     return render_template('html/page.html', board=board)
@@ -37,7 +34,7 @@ def computer_turn():
     Get a series of computer moves
     """
     board = json.loads(request.data)
-    sequence = computer.Computer(board).generate_computer_sequence()
+    sequence = Computer(board).generate_computer_sequence()
 
     json_sequence = jsonify(sequence=sequence)
     return json_sequence
@@ -49,16 +46,15 @@ def clue():
     Generate a clue
     """
     board = json.loads(request.data)
-    models = [prediction.load_model("static/data/{}_final".format(name)) for name in ["wiki"]]
+    predictor = Predictor(relevant_words_path='static/data/relevant_words',
+                          relevant_vectors_path='static/data/relevant_vectors',
+                          board=board[1:],
+                          invalid_guesses=set(board[0]['invalid_guesses']),
+                          alpha=8.0,
+                          eta=0.5)
 
-    predictor = prediction.Predictor(board=board[1:],
-                                     models=models,
-                                     vocab_path="static/data/wiki_top_words",
-                                     target=board[0]["target"],
-                                     invalid_guesses=set(board[0]["invalid_guesses"]))
-
-    score, clue, target_blue = predictor.get_best_guess_and_score()
-    clue_details = jsonify(clue=clue, target_blue=target_blue)
+    _clue, modal_score, targets = predictor.run()
+    clue_details = jsonify(clue=_clue, targets=targets)
 
     return clue_details
 
