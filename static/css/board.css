@@ -1,3 +1,10 @@
+#title {
+    font-family: Courier New, monospace;
+    font-weight: bold;
+    letter-spacing: .1em;
+    font-size: 1em;
+}
+
 #status {
     padding-top: 0.5em;
     padding-bottom: 0.5em;
@@ -17,6 +24,7 @@
     font-family: arial;
     border-radius: 5px;
     background-color: #F0F0F0;
+    color: #323032;
 }
 
 .symbol_button_text:hover {
@@ -30,25 +38,24 @@ body {
     -moz-user-select: none;
     -o-user-select: none;
     user-select: none;
+    background: #323032;
+    color: white;
+    font-family: Courier New;
+    font-weight: bold;
 }
 
 .remaining_text {
-    font-weight: bold;
-    font-family: Courier New;
     color: var(--colour);
 }
 
 .card {
   height: 80px;
-  font-weight: bold;
   background-color: #FFE0BD;
   color: black;
   line-height: 80px;
   font-size: 180%;
-  font-family: arial;
   border-radius: 5px;
   text-transform: uppercase;
-  outline-style: none;
 }
 
 .card:hover {
@@ -56,22 +63,9 @@ body {
   cursor: pointer;
 }
 
-.clue_button {
-  background-color: #F0F0F0;
-  font-family: arial;
-  border-radius: 5px;
-}
-
-.clue_button:hover {
-  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
-  cursor: pointer;
-}
-
 .wrapper {
   display: grid;
   grid-template-columns: repeat(var(--split), 1fr);
-  background-color: #fff;
-  color: #444;
   text-align: center;
   row-gap: 10px;
   column-gap: 10px;
@@ -98,7 +92,7 @@ body {
 #cheat {
   height: 20px;
   width: 20px;
-  background-color: #eee;
+  background-color: white;
 }
 
 #cheat:hover {

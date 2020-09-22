@@ -5,28 +5,36 @@
       <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
       <script>{% include 'js/main.js' %}</script>
       <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-      <link rel='stylesheet' type='text/css' href='{{ url_for('static', filename='css/board.css') }}'>
+      <link rel='stylesheet' type='text/css' href='{{ url_for("static", filename="css/board.css") }}'>
    </head>
    <body>
       <div id = "application">
          <div class = "wrapper" style="--split: 5;" id = "status">
             <div class="symbol_button" id="reset">
-               <div class="symbol_button_text">Reset &#8634;</div>
+               <div class="symbol_button_text">
+                  Reset &#8634;
+               </div>
             </div>
             <div id="remaining">
                <span class="remaining_text" id="blue" style="--colour:blue">9</span>
                &nbsp;–&nbsp;
                <span class="remaining_text" id="red" style="--colour:red">8</span>
             </div>
-            <div id="turn_text"></div>
+            <div id="title">
+               Codenames
+            </div>
             <div></div>
             <div class="symbol_button" id="end_turn">
-               <div class="symbol_button_text">End Turn</div>
+               <div class="symbol_button_text">
+                  End Turn
+               </div>
             </div>
          </div>
          <div class="wrapper" style="--split: 5;" id="board">
             {% for word in board[1:] %}
-               <div class="card" id="{{word.id}}">{{word.name}}</div>
+               <div class="card" id="{{word.id}}">
+                  {{word.name}}
+               </div>
             {% endfor %}
          </div>
       </div>
@@ -39,16 +47,8 @@
             <input type="radio" name="difficulty" value="hard" id="hard">
             <label for="hard">hard</label>
          </div>
-         {% if board[0]["target"] >= 1 %}
-            <div id="clue_text">Clue: {{board[0]["clue"]}} ({{board[0]["target"]}})</div>
-         {% else %}
-            <div id="clue_text">Clue: {{board[0]["clue"]}}</div>
-         {% endif %}
-         <div id="clue_wrapper">
-            {% for i in range(1, 4, 1) %}
-            <div class="clue_button" id = "clue_button{{i}}" data-target="{{i}}">{{i}}</div>
-            {% endfor %}
-         </div>
+         <div id="clue_text"></div>
+         <div id="turn_text"></div>
          <div>
             <label class="switch">
                Cheat
@@ -56,7 +56,9 @@
             </label>
          </div>
          <div class="symbol_button" id="instructions">
-            <div class="symbol_button_text">Instructions &#10068;</div>
+            <div class="symbol_button_text">
+               Instructions &#63;
+            </div>
             <div id="dialog"></div>
          </div>
       </div>

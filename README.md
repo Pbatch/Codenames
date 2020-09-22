@@ -29,7 +29,7 @@ Issues include:
 
 Full details are given in:
 
-[clean_vectors.py](misc/clean_vectors.py)
+[clean_vectors.py](preprocessing/clean_vectors.py)
 
 ## Prediction
 

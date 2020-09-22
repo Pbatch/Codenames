@@ -1,52 +1,54 @@
-//Equivalent to time.sleep(). Only works on async functions.
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 $(document).ready(function(){
 
-  //Disable the clue, card and end turn buttons
   function disable_buttons(){
     $('.card').css('pointer-events', 'none');
     $('#end_turn').css('pointer-events', 'none');
-    $('.clue_button').css('pointer-events', 'none');
     $('.switch').css('pointer-events', 'none');
   }
 
-  //Make guesses
-  function make_guess() {
-    //Update title
-    $('#turn_text').html("Make your guesses");
+  function generate_clue() {
+     $('#turn_text').html("Generating a clue");
 
-    //Activate relevant buttons
+     $.ajax({
+        type:'POST',
+        url: "{{ url_for('clue')}}",
+        contentType: "application/json; charset=utf-8",
+        dataType: "html",
+        data: JSON.stringify(board),
+        success: function(clue_details){
+            clue_details = JSON.parse(clue_details);
+            clue = clue_details.clue;
+            targets = clue_details.targets;
+            board[0]["invalid_guesses"].push(clue);
+            $("#clue_text").html(`Clue: ${clue} (${targets.length})`)
+            remaining_guesses = targets.length + 1;
+            update_card_borders(cheat);
+            make_guess();
+        }
+    });
+  };
+
+  function make_guess() {
+    $('#turn_text').html("Make your guesses");
     disable_buttons();
     $('.card').css('pointer-events', 'auto');
     $('#end_turn').css('pointer-events', 'auto');
     $('.switch').css('pointer-events', 'auto');
   }
 
-  //Choose clue
-  function choose_clue() {
-    //Update title
-    $('#turn_text').html("Choose a clue size");
-
-    //Activate relevant buttons
-    disable_buttons();
-    $('.clue_button').css('pointer-events', 'auto');
-  }
-
-  //Update card borders
   function update_card_borders(check) {
-    if (check == true) {
-      var outline_style = "dashed";
-    }
-    else {
-      var outline_style = "none";
-    }
-    for (i = 0; i < target_blue.length; i++) {
-      var id = target_blue[i];
-      $("#"+id).css({
-      "outline-style": outline_style});
+    for (i = 0; i < targets.length; i++) {
+      id = targets[i];
+      if (check == true || board[id].active == true) {
+          $("#"+id).css({
+          "color": white,
+          "text-shadow": text_shadow});
+      }
+      else {
+        $("#"+id).css({
+        "color": "black",
+        "text-shadow": ""});
+      }
     }
   }
 
@@ -58,7 +60,8 @@ $(document).ready(function(){
 
     //Change its colour
     $("#"+id).css({
-    "color": "#F5F5F5",
+    "color": white,
+    "text-shadow": text_shadow,
     "background-color": board[id].colour});
 
     //Decrement the appropriate count
@@ -77,17 +80,20 @@ $(document).ready(function(){
 
   //Check if the game has ended
   function check_end() {
-    var end = false;
+    if (end == true) {
+        return;
+    }
+    console.log(blue_remaining, red_remaining, assassin_remaining);
     if (blue_remaining == 0) {
       //Update title
-      $('#turn_text').html("Congratulations! You win");
-      var end = true;
+      $('#turn_text').html("You win!");
+      end = true;
     }
     //The computer never chooses the assassin so no assassin guarantees a loss
     else if (red_remaining == 0 || assassin_remaining == 0) {
       //Update title
-      $('#turn_text').html("Unlucky... You lose");
-      var end = true;
+      $('#turn_text').html("You lose...");
+      end = true;
     }
     if (end == true) {
       //Disable all buttons
@@ -108,13 +114,6 @@ $(document).ready(function(){
     //Remove old cheat borders
     update_card_borders(false);
 
-    //Removed sleep functionality
-    //Update title
-    //$('#turn_text').html("Opponent's turn");
-
-    //Update clue text
-    $("#clue_text").html(`Clue: `)
-
     //Disable buttons
     disable_buttons();
 
@@ -126,22 +125,19 @@ $(document).ready(function(){
        dataType: "html",
        data: JSON.stringify(board),
        success: async function(sequence){
-         var sequence = JSON.parse(sequence).sequence;
+         sequence = JSON.parse(sequence).sequence;
 
          //Apply the sequence
-         var sequence_length = sequence.length;
+         sequence_length = sequence.length;
          for (i = 0; i < sequence_length; i++) {
-            //Removed sleep functionality
-            //await sleep(250);
             update_card(sequence[i]);
-            var check = check_end();
-            if (check == true) {
+            if (check_end() == true) {
                 break;
             }
          }
-         //If the game hasn't ended, go back to offering clues
-         if (check == false) {
-            choose_clue();
+         //If the game hasn't ended, generate another clue
+         if (check_end() == false) {
+            generate_clue();
          }
        }
     });
@@ -158,9 +154,15 @@ $(document).ready(function(){
   var neutral_remaining = 7;
   var assassin_remaining = 1;
   var cheat = false;
-  window.target_blue = [];
-
-  //Load instructions
+  var targets = [];
+  var clue_details = '';
+  var clue = '';
+  var end = false;
+  var sequence = [];
+  var sequence_length = 0;
+  var id = 0;
+  var white = "#F5F5F5";
+  var text_shadow = "0 0 1px black, 0 0 1px black, 0 0 1px black, 0 0 1px black";
   var opt = {
      autoOpen: false,
      resizable: false,
@@ -176,22 +178,22 @@ $(document).ready(function(){
   $("#easy").prop("checked", true);
 
   //Set the initial state
-  choose_clue();
+  generate_clue();
 
   /*
   Click events
   */
 
-  //Card behaviour
+  // Card behaviour
   $('.card').click(function() {
-     //Get the id of the card
-     var id = $(this).attr('id');
+     // Get the id of the card
+     id = $(this).attr('id');
 
      if (board[id].active == false) {
         // Remove a guess
         remaining_guesses -= 1;
 
-        //Update the clicked card
+        // Update the clicked card
         update_card(id);
         check_end();
 
@@ -214,45 +216,6 @@ $(document).ready(function(){
     });
   });
 
-  //Clue button behaviour
-  $('.clue_button').click(function() {
-
-     //Stop other requests
-     $('.clue_button').css('pointer-events', 'none');
-
-     //Loading placeholder
-     $('div[id=clue_text]').html("Thinking...");
-
-     //Update the board
-     board[0].target = $(this).data('target');
-     remaining_guesses = board[0].target + 1;
-
-     $.ajax({
-        type:'POST',
-        url: "{{ url_for('clue')}}",
-        contentType: "application/json; charset=utf-8",
-        dataType: "html",
-        data: JSON.stringify(board),
-        success: function(clue_details){
-            var clue_details = JSON.parse(clue_details);
-            var clue = clue_details.clue;
-            window.target_blue = clue_details.target_blue;
-
-            //Add the clue to the list of invalid guesses
-            board[0]["invalid_guesses"].push(clue);
-
-            //Update clue and target
-            $("#clue_text").html(`Clue: ${clue} (${board[0].target})`)
-
-            //Update borders of relevant cards
-            update_card_borders(cheat);
-
-            //Go to make_guess function
-            make_guess();
-        }
-    });
-  });
-
   //Instruction button behaviour
   $('#instructions').click(function() {
     theDialog.dialog("open");
@@ -261,7 +224,7 @@ $(document).ready(function(){
   //End turn button behaviour
   $('#end_turn').click(function() {
     computer_turn();
-  })
+  });
 
   //Radio button behaviour
   $("input[name='difficulty']").click(function(){
