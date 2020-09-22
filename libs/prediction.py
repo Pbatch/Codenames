@@ -1,64 +1,127 @@
-import gensim
-from itertools import combinations, chain
-import argparse
+from itertools import chain
 import pickle
+import numpy as np
+from numba import njit
 
 
-def load_model(in_file):
+@njit(fastmath=True)
+def binary_search(arr):
     """
-    Load a pretrained model
+    Binary search
     """
-    model = gensim.models.KeyedVectors.load(in_file, mmap="r")
-    return model
+    mini, mid, maxi = 0, 0, arr.shape[0]
+    rand = arr[-1] * np.random.random()
+    while mini < maxi:
+        mid = mini + ((maxi - mini) >> 1)
+        if rand > arr[mid]:
+            mini = mid + 1
+        else:
+            maxi = mid
+    return mini
 
 
 class Predictor:
     """
     Generate clues for the blue team
     """
-    def __init__(self, board, models, vocab_path, target, invalid_guesses):
+    def __init__(self,
+                 relevant_words_path,
+                 relevant_vectors_path,
+                 board,
+                 invalid_guesses,
+                 alpha=1.0,
+                 eta=0.4,
+                 trials=1000):
         """
         Parameters
         ----------
+        relevant_words_path: str
+                          : The path to the dictionary of relevant words
+        relevant_vectors_path: str
+                             : The path to the dictionary of relevant vectors
         board: json
-            The current board state
-        models: list
-            The word2vec models used to compute word distances
-        vocab_path: str
-            The path to the vocabulary
-        target: int
-            The number of words to try and link
+             : The current board state
         invalid_guesses: set
-            Clues which have already been given
+                       : Clues which have already been given
+        alpha: float (default = 1.0)
+             : The first parameter to the logistic function
+        eta: float (default = 0.4)
+           : The second parameter to the logistic function
+        trials: int (default = 1000)
+              : The number of trials to use for the Monte-Carlo method
         """
-        self.models = models
-        self.target = target
-        self.vocab_path = vocab_path
+        self.relevant_words_path = relevant_words_path
+        self.relevant_vectors_path = relevant_vectors_path
         self.board = board
         self.invalid_guesses = invalid_guesses
+        self.alpha = alpha
+        self.eta = eta
+        self.trials = trials
 
-        self.words = self.get_words()
-        self.all_words = self.get_all_words()
-        self.blue, self.red, self.neutral, self.assassin = self.get_types()
+        self.inactive_words = None
+        self.words = None
+        self.blue, self.red, self.neutral, self.assassin = None, None, None, None
+        self.valid_guesses = None
 
-        self.pairwise_scores = self.calculate_pairwise_scores()
-        self.valid_guesses = self.get_valid_guesses()
-
-    def get_words(self):
+    @staticmethod
+    @njit(fastmath=True)
+    def _cosine_similarity(u, v):
         """
-        Extract the words from the inactive cards
+        Calculate the cosine similarity between vectors u and v
         """
-        words = [card["name"].replace(" ", "") for card in self.board if not card["active"]]
-        return words
+        u_dot_v = 0
+        u_norm = 0
+        v_norm = 0
+        for i in range(u.shape[0]):
+            u_dot_v += u[i] * v[i]
+            u_norm += u[i] * u[i]
+            v_norm += v[i] * v[i]
 
-    def get_all_words(self):
+        u_norm = np.sqrt(u_norm)
+        v_norm = np.sqrt(v_norm)
+
+        if (u_norm == 0) or (v_norm == 0):
+            similarity = 1.0
+        else:
+            similarity = u_dot_v / (u_norm * v_norm)
+        return similarity
+
+    @staticmethod
+    @njit(fastmath=True)
+    def _calculate_expected_score(similarities, n_blue, trials):
+        """
+        Calculate the expected score with a Monte-Carlo method
+        """
+        expected_score = 0
+        for _ in range(trials):
+            trial_score = 0
+            cumsum = np.cumsum(similarities)
+            while True:
+                sample = binary_search(cumsum)
+                if sample < n_blue:
+                    if sample == 0:
+                        cumsum[sample] = 0
+                    else:
+                        difference = cumsum[sample] - cumsum[sample - 1]
+                        cumsum[sample:] -= difference
+                    trial_score += 1
+                else:
+                    break
+            expected_score += trial_score
+        expected_score /= trials
+        return expected_score
+
+    def _similarity(self, u, v):
+        return 1 / (1 + np.exp(-self.alpha * (self._cosine_similarity(u, v) - self.eta)))
+
+    def _get_words(self):
         """
         Extract the words from every card
         """
         all_words = [card["name"].replace(" ", "") for card in self.board]
         return all_words
 
-    def get_types(self):
+    def _get_types(self):
         """
         Extract the types from the cards
         """
@@ -78,123 +141,75 @@ class Predictor:
                 assassin = name
         return blue, red, neutral, assassin
 
-    def get_valid_guesses(self):
+    def _get_valid_guesses(self):
         """
         Get the relevant valid guesses
         """
-        with open(self.vocab_path, "rb") as f:
-            top_words_dictionary = pickle.load(f)
-        potential_guesses = set(chain.from_iterable(top_words_dictionary[w] for w in self.blue))
+        with open(self.relevant_words_path, 'rb') as f:
+            relevant_words = pickle.load(f)
+        potential_guesses = set(chain.from_iterable(relevant_words[w] for w in self.blue))
         valid_guesses = potential_guesses.difference(self.invalid_guesses)
 
         return valid_guesses
 
-    def similarity(self, first_word, second_word):
+    def _get_relevant_vectors(self):
         """
-        Determine how similar two words are
+        Get the relevant vectors
         """
-        total_score = 0
-        for model in self.models:
-            try:
-                score = model.similarity(first_word, second_word)
-                if score >= 0.4:
-                    total_score += score
-            except KeyError:
-                pass
+        with open(self.relevant_vectors_path, 'rb') as f:
+            relevant_vectors = pickle.load(f)
+        return relevant_vectors
 
-        return total_score
-
-    def calculate_pairwise_scores(self):
+    def _setup(self):
         """
-        Generate the pairwise scores
-
-        This dictionary will save unnecessary computation time later on
+        Setup the relevant data structures
         """
-        pairwise_scores = {}
-        for pair in combinations(self.blue, 2):
-            pairwise_scores[pair] = self.similarity(pair[0], pair[1])
-        return pairwise_scores
+        self.relevant_vectors = self._get_relevant_vectors()
+        self.words = self._get_words()
+        self.blue, self.red, self.neutral, self.assassin = self._get_types()
+        self.ordered_words = self.blue + self.red + [self.assassin] + self.neutral
+        self.ordered_word_vectors = np.array([self.relevant_vectors[w] for w in self.ordered_words], dtype=np.float32)
+        self.valid_guesses = self._get_valid_guesses()
 
-    def guess_score(self, guess):
+    def _calculate_guess_score(self, guess):
         """
         Generate a score for a guess
-
-        The first component is the number of relevant red + neutral + assassin words
-        The second component is the number of relevant blue words
-        The final component is a measure of how well the clue and the relevant blue words link
         """
+        guess_vector = self.relevant_vectors[guess]
+        similarities = [self._similarity(guess_vector, v) for v in self.ordered_word_vectors]
+        similarities = np.array(similarities, dtype=np.float32)
+        score = self._calculate_expected_score(similarities, len(self.blue), self.trials)
 
-        if guess in self.words:
-            return [[float('-inf'), float('-inf'), float('-inf')], guess, []]
+        return score, guess
 
-        score = [0, 0, 0]
-
-        bad_similarities = [(w, self.similarity(guess, w)) for w in self.red + self.neutral + [self.assassin]]
-        relevant_bad_words = [w for w, s in bad_similarities if s != 0]
-
-        score[0] = -len(relevant_bad_words)
-
-        blue_similarities = [(w, self.similarity(guess, w)) for w in self.blue]
-        relevant_blue_words = {w: s for w, s in blue_similarities if s != 0}
-
-        score[1] = min(self.target, len(relevant_blue_words))
-
-        target_blue = []
-        for blue_words in combinations(relevant_blue_words.keys(), score[1]):
-            pairs = combinations(blue_words, 2)
-            cluster_score = sum(self.pairwise_scores[(a, b)] for a, b in pairs)
-            guess_score = sum(relevant_blue_words[w] for w in blue_words)
-            total_score = cluster_score + guess_score
-            if total_score >= score[2]:
-                target_blue = blue_words
-                score[2] = total_score
-
-        target_blue = [self.all_words.index(w)+1 for w in target_blue]
-
-        return score, guess, target_blue
-
-    def get_best_guess_and_score(self):
+    def _get_targets(self, guess, modal_score):
         """
-        Get the best guess and its score
+        Get the target words for a given guess and modal score
         """
-        guess_scores = (self.guess_score(g) for g in self.valid_guesses)
-        best_score, best_guess, target_blue = max(guess_scores, key=lambda x: x[0])
+        best_guess_vector = self.relevant_vectors[guess]
+        blue_similarities = np.array([self._cosine_similarity(best_guess_vector, self.relevant_vectors[w])
+                                      for w in self.blue])
+        sorted_idx = np.argsort(-blue_similarities)
+        best_blue = set(np.array(self.blue)[sorted_idx][:modal_score])
 
-        return best_score, best_guess, target_blue
+        # DEBUGGING
+        print(np.array(self.blue)[sorted_idx][:5])
 
+        targets = []
+        for card in self.board:
+            if card['name'].replace(' ', '') in best_blue:
+                targets.append(card['id'])
+        return targets
 
-def main():
-    parser = argparse.ArgumentParser(description='Create a Codenames board.'
-                                                 'Generate potential guesses for both teams.')
-    parser.add_argument('codenames_words', type=str,
-                        help='The file location of Codenames words')
-    parser.add_argument('training_vectors', type=str,
-                        help='The file location of the pretrained model')
-    args = parser.parse_args()
+    def run(self):
+        """
+        Get the best clue, it's score (rounded up) and the words it is supposed to link to
+        """
+        self._setup()
+        guess_scores = (self._calculate_guess_score(g) for g in self.valid_guesses)
+        score, clue = max(guess_scores, key=lambda x: x[0])
+        print(f'Clue:{clue}, Score:{score}')
+        score = int(np.ceil(score))
+        targets = self._get_targets(clue, score)
 
-    model = load_model(args.training_vectors)
-    for word in open("../static/codenames_words"):
-        w = word.strip("\n").replace(" ", "")
-        if w not in model.vocab:
-            print(w)
-
-    with open("../static/top_words", "rb") as f:
-        top_words_dict = pickle.load(f)
-
-    for w in set(chain.from_iterable(top_words_dict.values())):
-        if w not in model.vocab:
-            print(w)
-
-if __name__ == "__main__":
-    main()
-
-
-
-
-
-
-
-
-
-
-
+        return clue, score, targets
