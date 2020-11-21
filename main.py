@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import json
-from libs.boardgen import Boardgen
-from libs.prediction import Predictor
-from libs.computer import Computer
+from src.boardgen import Boardgen
+from src.prediction import Predictor
+from src.computer import Computer
 app = Flask(__name__)
 
 
@@ -50,10 +50,9 @@ def clue():
                           relevant_vectors_path='static/data/relevant_vectors',
                           board=board[1:],
                           invalid_guesses=set(board[0]['invalid_guesses']),
-                          alpha=8.0,
-                          eta=0.5)
+                          threshold=0.45)
 
-    _clue, modal_score, targets = predictor.run()
+    _clue, clue_score, targets = predictor.run()
     clue_details = jsonify(clue=_clue, targets=targets)
 
     return clue_details

@@ -8,12 +8,14 @@ from copy import deepcopy
 
 
 class CleanGlove:
-    def __init__(self, glove_path, codenames_path, threshold=0.5, limit=int(3e5)):
+    def __init__(self, glove_path, codenames_path, stopwords_path, threshold=0.5, limit=int(3e5)):
         """
         :param glove_path: str
                          : The path to the glove vectors
         :param codenames_path: str
                              : The path to the codenames words
+        :param stopwords_path: str
+                             : The path to the stopwords
         :param threshold: float (default = 0.5)
                         : The similarity threshold for the dot product between vectors
         :param limit: int (default = int(3e5))
@@ -21,8 +23,11 @@ class CleanGlove:
         """
         self.glove_path = glove_path
         self.codenames_path = codenames_path
+        self.stopwords_path = stopwords_path
         self.threshold = threshold
         self.limit = limit
+
+        self.stopwords = None
         self.codenames_words = None
         self.stemmed_codenames_words = None
         self.codenames_vectors = None
@@ -56,6 +61,10 @@ class CleanGlove:
         """
         Check if the given word is valid
         """
+        # Stopwords check
+        if word in self.stopwords:
+            return False
+
         # Punctuation check
         if not word.isalpha():
             return False
@@ -98,6 +107,13 @@ class CleanGlove:
         codenames_words = set(word.strip('\n').replace(" ", "") for word in open(self.codenames_path))
         self.codenames_words = codenames_words
         self.stemmed_codenames_words = set(map(stem, codenames_words))
+
+    def _get_stopwords(self):
+        """
+        Get the stopwords
+        """
+        stopwords = set(word.strip('\n').replace(" ", "") for word in open(self.stopwords_path))
+        self.stopwords = stopwords
 
     def _get_codenames_word_vectors(self):
         """
@@ -153,6 +169,7 @@ class CleanGlove:
         Run the pipeline
         """
         self._get_codenames_words()
+        self._get_stopwords()
         self._get_codenames_word_vectors()
         self._get_relevant_words_and_vectors()
         self._save_relevant_words_and_vectors()
@@ -161,7 +178,8 @@ class CleanGlove:
 def main():
     cls = CleanGlove(glove_path='glove.42B.300d.txt',
                      codenames_path='../static/data/codenames_words',
-                     threshold=0.4,
+                     stopwords_path='stopwords',
+                     threshold=0.45,
                      limit=int(5e4))
     cls.run()
 
